@@ -10,6 +10,11 @@ const clientId = process.env.DISCORD_CLIENT_ID;
 const clientSecret = process.env.DISCORD_CLIENT_SECRET;
 const redirectUri = process.env.DISCORD_REDIRECT_URI || `http://localhost:${port}/auth/discord/callback`;
 const discordUserId = '1542616256967082085';
+const publicProfile = {
+  id: discordUserId,
+  username: 'Pruu',
+  avatar: null
+};
 const cookieKey = crypto.createHash('sha256').update(clientSecret || '').digest();
 let profileViews = 0;
 const profileViewers = new Set();
@@ -46,15 +51,8 @@ function setSessionCookie(response, session) {
 }
 
 if (!clientId || !clientSecret) {
-  console.error('Missing DISCORD_CLIENT_ID or DISCORD_CLIENT_SECRET in .env');
-  process.exit(1);
+  console.warn('Discord OAuth credentials missing; public profile mode is enabled without auth.');
 }
-
-app.get('/', (request, response, next) => {
-  const cookies = getCookies(request);
-  if (!openSession(cookies.profile_session || '')) return response.redirect('/auth/discord');
-  next();
-});
 
 app.use(express.static('.'));
 
@@ -117,7 +115,10 @@ app.get('/auth/discord/callback', async (request, response) => {
 app.get('/api/me', async (request, response) => {
   const cookies = getCookies(request);
   const session = openSession(cookies.profile_session || '');
-  if (!session) return response.json(null);
+
+  if (!session) {
+    return response.json(publicProfile);
+  }
 
   try {
     if (session.expiresAt <= Date.now() + 60000 && session.refreshToken) {
@@ -149,19 +150,19 @@ app.get('/api/me', async (request, response) => {
       session.avatar = user.avatar
         ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=256`
         : null;
+      return response.json({ id: session.id, username: session.username, avatar: session.avatar });
     }
   } catch (error) {
     console.error('Discord sync failed:', error.message);
   }
 
-  response.json({ id: session.id, username: session.username, avatar: session.avatar });
+  return response.json(publicProfile);
 });
 
 app.get('/api/views', (request, response) => {
-  const session = openSession(getCookies(request).profile_session || '');
-  if (!session) return response.status(401).json({ error: 'Unauthorized' });
   profileViews += 1;
-  profileViewers.add(session.id);
+  const viewerId = getCookies(request).profile_session ? openSession(getCookies(request).profile_session || '')?.id : 'public';
+  if (viewerId) profileViewers.add(viewerId);
   response.json({ views: profileViews, users: profileViewers.size });
 });
 
