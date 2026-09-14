@@ -206,6 +206,9 @@
     .activity-progress::-webkit-progress-bar { border-radius: 4px; background: rgba(255, 255, 255, .14); }
     .activity-progress::-webkit-progress-value { border-radius: 4px; background: #f1f1ef; }
     .activity-progress::-moz-progress-bar { border-radius: 4px; background: #f1f1ef; }
+    .stats { width: 100%; display: flex; gap: 28px; margin-top: 16px; color: var(--muted); font-family: "DM Mono", monospace; font-size: 10px; text-align: left; }
+    .stat { display: grid; gap: 5px; }
+    .stat strong { color: var(--ink); font-size: 13px; font-weight: 500; }
 
     .socials {
       width: 100%;
@@ -308,7 +311,7 @@
       <source src="Profile-Background.mp4" type="video/mp4" />
     </video>
     <video class="background-video-fill" muted loop playsinline aria-hidden="true">
-      <source src="profile-background.mp4" type="video/mp4" />
+      <source src="Profile-Background.mp4" type="video/mp4" />
     </video>
     <div class="enter-screen" id="enterScreen" role="button" tabindex="0" aria-label="Enter profile and start music">click to enter...</div>
     <div class="volume" aria-label="Volume control">
@@ -357,6 +360,11 @@
 
       <p class="location">Location <svg class="pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.1 7-12A7 7 0 0 0 5 9c0 5.9 7 12 7 12Zm0-9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"/></svg>Not Found Yet</p>
 
+      <div class="stats" aria-label="Profile views">
+        <div class="stat"><strong id="profileViews">0</strong><span>views</span></div>
+        <div class="stat"><strong id="profileUsers">0</strong><span>Discord users</span></div>
+      </div>
+
     </section>
 
   </main>
@@ -374,6 +382,8 @@
     const activityValue = document.querySelector('#activityValue');
     const activityMeta = document.querySelector('#activityMeta');
     const activityProgress = document.querySelector('#activityProgress');
+    const profileViews = document.querySelector('#profileViews');
+    const profileUsers = document.querySelector('#profileUsers');
     let previousVolume = slider.value;
 
     function syncDiscordProfile() {
@@ -388,6 +398,12 @@
     }
 
     syncDiscordProfile();
+    fetch('/api/views', { cache: 'no-store' }).then((response) => response.json()).then((stats) => {
+      if (stats.error) return;
+      profileViews.textContent = stats.views.toLocaleString();
+      profileUsers.textContent = stats.users.toLocaleString();
+    }).catch(() => {});
+
     function syncActivity() {
       fetch('/api/activity', { cache: 'no-store' }).then((response) => response.json()).then((presence) => {
         const activity = presence.activities?.find((item) => item.type === 0 && item.name);

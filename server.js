@@ -11,6 +11,8 @@ const clientSecret = process.env.DISCORD_CLIENT_SECRET;
 const redirectUri = process.env.DISCORD_REDIRECT_URI || `http://localhost:${port}/auth/discord/callback`;
 const discordUserId = '1542616256967082085';
 const cookieKey = crypto.createHash('sha256').update(clientSecret || '').digest();
+let profileViews = 0;
+const profileViewers = new Set();
 
 function getCookies(request) {
   return Object.fromEntries((request.headers.cookie || '').split(';').filter(Boolean).map((item) => {
@@ -153,6 +155,14 @@ app.get('/api/me', async (request, response) => {
   }
 
   response.json({ id: session.id, username: session.username, avatar: session.avatar });
+});
+
+app.get('/api/views', (request, response) => {
+  const session = openSession(getCookies(request).profile_session || '');
+  if (!session) return response.status(401).json({ error: 'Unauthorized' });
+  profileViews += 1;
+  profileViewers.add(session.id);
+  response.json({ views: profileViews, users: profileViewers.size });
 });
 
 app.get('/api/activity', async (request, response) => {
