@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b0d10" />
+  <title>pruthvi_1117 | profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #f1f1ef;
+      --muted: #a7aaa9;
+      --faint: #727775;
+      --panel: rgba(12, 15, 16, .72);
+      --line: rgba(255, 255, 255, .1);
+      --accent: #d3a35c;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background: #07090a;
+      font-family: Manrope, sans-serif;
+      overflow-x: hidden;
+    }
+
+    .scene {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      position: relative;
+      isolation: isolate;
+      padding: 36px 24px 92px;
+      overflow: hidden;
+    }
+
+    .background-video {
+      position: absolute;
+      inset: -4%;
+      z-index: -2;
+      width: 108%;
+      height: 108%;
+      object-fit: cover;
+      filter: saturate(.9);
+      transform: scale(1.02);
+    }
+
+    .background-video-fill {
+      position: absolute;
+      inset: -8%;
+      z-index: -3;
+      width: 116%;
+      height: 116%;
+      object-fit: cover;
+      filter: blur(24px) saturate(.85) brightness(.72);
+      transform: scale(2.2);
+    }
+
+    .scene::before {
+      content: "";
+      position: absolute;
+      inset: -4%;
+      z-index: -4;
+      background:
+        linear-gradient(90deg, rgba(5, 7, 8, .76), rgba(5, 8, 10, .25) 48%, rgba(4, 6, 6, .78)),
+        linear-gradient(0deg, rgba(4, 5, 5, .68), transparent 42%, rgba(5, 7, 8, .3)),
+        #07090a;
+      filter: blur(16px) saturate(.72);
+      transform: scale(1.08);
+    }
+
+    .scene::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      background: linear-gradient(0deg, rgba(2, 3, 3, .62), transparent 48%, rgba(2, 4, 5, .18));
+      pointer-events: none;
+    }
+
+    .volume {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 18px 21px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: rgba(12, 14, 15, .66);
+      backdrop-filter: blur(16px);
+      z-index: 5;
+    }
+
+    .volume button, .close {
+      border: 0;
+      color: var(--ink);
+      background: transparent;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .enter-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9;
+      display: grid;
+      place-items: center;
+      color: rgba(241, 241, 239, .72);
+      background: #000;
+      font-family: "Syne", sans-serif;
+      font-size: clamp(1.35rem, 3vw, 2rem);
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-shadow: 0 0 26px rgba(241, 241, 239, .28);
+      cursor: pointer;
+      transition: opacity .45s ease, visibility .45s ease;
+    }
+
+    .enter-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .speaker { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    input[type="range"] { width: 170px; accent-color: #c9c9c5; cursor: pointer; }
+
+    .profile {
+      width: min(100%, 440px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      animation: rise .9s cubic-bezier(.2, .8, .2, 1) both;
+    }
+
+    .alias {
+      position: relative;
+      margin: 0 0 18px;
+      font-family: "Syne", sans-serif;
+      font-size: clamp(1.7rem, 5.5vw, 3rem);
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-shadow: 0 2px 24px rgba(0, 0, 0, .6);
+      animation: glitch 4.5s infinite steps(1, end);
+    }
+
+    .location { width: 100%; padding-left: 8px; color: var(--muted); font-size: 15px; margin: 16px 0 0; text-align: left; }
+    .pin { width: 14px; height: 14px; margin: 0 7px 0 0; vertical-align: -2px; fill: #e9e9e5; }
+
+    .identity {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 17px 22px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 27px;
+      background: var(--panel);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .24);
+      backdrop-filter: blur(22px);
+      text-align: left;
+    }
+
+    .avatar {
+      width: 72px;
+      height: 72px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(255, 255, 255, .24);
+      visibility: hidden;
+    }
+
+    .identity-copy { min-width: 0; }
+    .username { margin: 0 0 5px; font-size: 19px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .service { margin: 0; color: var(--muted); font-size: 14px; }
+    .status { margin-left: auto; color: #d6b06f; font-size: 19px; }
+    .activity {
+      width: 100%;
+      min-height: 86px;
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 12px;
+      margin-top: 12px;
+      padding: 12px 15px;
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 16px;
+      background: rgba(12, 15, 16, .58);
+      text-align: left;
+    }
+    .activity[hidden] { display: none; }
+    .activity-icon { width: 52px; height: 52px; display: grid; place-items: center; overflow: hidden; color: #d6b06f; font-size: 20px; }
+    .activity-icon img { width: 52px; height: 52px; border-radius: 7px; object-fit: cover; }
+    .activity-copy { min-width: 0; }
+    .activity-label { margin: 0 0 3px; color: var(--faint); font-family: "DM Mono", monospace; font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+    .activity-value { margin: 0; overflow: hidden; color: var(--ink); font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+    .activity-meta { margin: 3px 0 7px; overflow: hidden; color: var(--muted); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .activity-progress { width: 100%; height: 3px; appearance: none; border: 0; border-radius: 4px; background: rgba(255, 255, 255, .14); }
+    .activity-progress::-webkit-progress-bar { border-radius: 4px; background: rgba(255, 255, 255, .14); }
+    .activity-progress::-webkit-progress-value { border-radius: 4px; background: #f1f1ef; }
+    .activity-progress::-moz-progress-bar { border-radius: 4px; background: #f1f1ef; }
+
+    .socials {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .social-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      padding: 13px 15px;
+      color: var(--ink);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: 16px;
+      background: rgba(12, 15, 16, .58);
+      font-size: 13px;
+      text-decoration: none;
+      backdrop-filter: blur(18px);
+      transition: border-color .2s, background .2s, transform .2s;
+    }
+
+    .social-link:hover {
+      border-color: rgba(255, 255, 255, .22);
+      background: rgba(24, 27, 27, .75);
+      transform: translateY(-2px);
+    }
+
+    .social-link img { width: 19px; height: 19px; flex: 0 0 auto; }
+    .social-link span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .spotify svg { color: #74d481; }
+    .roblox svg { color: #f0f0ed; }
+    .discord svg { color: #9aaeff; }
+
+    .stats {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 25px 8px 0;
+      color: var(--muted);
+      font-family: "DM Mono", monospace;
+      font-size: 12px;
+    }
+
+    .stat { display: grid; gap: 7px; text-align: left; }
+    .stat strong { color: var(--ink); font-weight: 500; font-size: 14px; }
+
+    .promo {
+      position: fixed;
+      left: 50%;
+      bottom: 26px;
+      transform: translateX(-50%);
+      width: min(calc(100% - 32px), 470px);
+      display: flex;
+      align-items: center;
+      gap: 17px;
+      padding: 17px 22px;
+      border: 1px solid var(--line);
+      border-radius: 36px;
+      background: rgba(20, 21, 21, .75);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 15px 55px rgba(0, 0, 0, .3);
+      animation: rise 1s .15s cubic-bezier(.2, .8, .2, 1) both;
+    }
+
+    .promo-mark { color: var(--accent); font-size: 27px; line-height: 1; }
+    .promo-copy { flex: 1; text-align: left; }
+    .promo-copy strong { display: block; font-size: 16px; }
+    .promo-copy span { display: block; margin-top: 3px; color: var(--muted); font-size: 13px; }
+    .close { color: var(--muted); font-size: 25px; font-weight: 200; transition: color .2s; }
+    .close:hover { color: var(--ink); }
+
+    @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes glitch {
+      0%, 91%, 100% { transform: translate(0); }
+      92% { transform: translate(-2px, 1px) skewX(-4deg); }
+      93% { transform: translate(2px, -1px) skewX(4deg); }
+      94% { transform: translate(0); }
+    }
+    
+    @media (max-width: 600px) {
+      .scene { padding: 90px 18px 150px; }
+      .volume { top: 16px; left: 16px; padding: 14px 16px; }
+      input[type="range"] { width: 115px; }
+      .alias { margin-bottom: 12px; }
+      .location { margin: 14px 0 0; }
+      .identity { padding: 14px 16px; border-radius: 22px; }
+      .avatar { width: 61px; height: 61px; }
+      .username { font-size: 16px; }
+      .promo { bottom: 16px; padding: 14px 17px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="scene">
+    <video class="background-video" muted loop playsinline>
+      <source src="profile-background.mp4" type="video/mp4" />
+    </video>
+    <video class="background-video-fill" muted loop playsinline aria-hidden="true">
+      <source src="profile-background.mp4" type="video/mp4" />
+    </video>
+    <div class="enter-screen" id="enterScreen" role="button" tabindex="0" aria-label="Enter profile and start music">click to enter...</div>
+    <div class="volume" aria-label="Volume control">
+      <button id="volumeButton" aria-label="Mute background audio">
+        <svg class="speaker" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9.5a4 4 0 0 1 0 5M18.5 7a7.5 7.5 0 0 1 0 10"/></svg>
+      </button>
+      <input id="volumeSlider" type="range" min="0" max="100" value="72" aria-label="Background volume" />
+    </div>
+
+    <section class="profile" aria-label="Discord profile">
+      <h1 class="alias">Pruu</h1>
+
+      <article class="identity">
+        <img class="avatar" id="discordAvatar" alt="Discord avatar" />
+        <div class="identity-copy">
+          <p class="username" id="discordUsername"></p>
+          <p class="service">Discord</p>
+        </div>
+        <span class="status" title="Online">●</span>
+      </article>
+
+      <article class="activity" id="activityCard" hidden>
+        <div class="activity-icon" id="activityIcon">♪</div>
+        <div class="activity-copy">
+          <p class="activity-label" id="activityLabel">Live activity</p>
+          <p class="activity-value" id="activityValue"></p>
+          <p class="activity-meta" id="activityMeta"></p>
+          <progress class="activity-progress" id="activityProgress" max="100" value="0" hidden></progress>
+        </div>
+      </article>
+
+      <nav class="socials" aria-label="Social links">
+        <a class="social-link spotify" href="https://open.spotify.com/user/31wmricipxevskzs4fw3kuv7aoiy?si=7d2f118914314928" target="_blank" rel="noreferrer">
+          <img src="https://cdn.simpleicons.org/spotify/74D481" alt="" />
+          <span>Spotify</span>
+        </a>
+        <a class="social-link roblox" href="https://www.roblox.com/share?code=71fd79836523eb47b033a7d7a110919c&type=Profile&source=ProfileShare&stamp=1789374787189" target="_blank" rel="noreferrer">
+          <img src="https://cdn.simpleicons.org/roblox/F0F0ED" alt="" />
+          <span>Roblox</span>
+        </a>
+        <a class="social-link discord" href="https://discord.com/users/1542616256967082085" target="_blank" rel="noreferrer">
+          <img src="https://cdn.simpleicons.org/discord/9AAEFF" alt="" />
+          <span>Discord</span>
+        </a>
+      </nav>
+
+      <p class="location">Location <svg class="pin" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.1 7-12A7 7 0 0 0 5 9c0 5.9 7 12 7 12Zm0-9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"/></svg>Not Found Yet</p>
+
+    </section>
+
+  </main>
+  <script>
+    const slider = document.querySelector('#volumeSlider');
+    const volumeButton = document.querySelector('#volumeButton');
+    const backgroundVideo = document.querySelector('.background-video');
+    const backgroundVideoFill = document.querySelector('.background-video-fill');
+    const enterScreen = document.querySelector('#enterScreen');
+    const discordUsername = document.querySelector('#discordUsername');
+    const discordAvatar = document.querySelector('#discordAvatar');
+    const activityCard = document.querySelector('#activityCard');
+    const activityIcon = document.querySelector('#activityIcon');
+    const activityLabel = document.querySelector('#activityLabel');
+    const activityValue = document.querySelector('#activityValue');
+    const activityMeta = document.querySelector('#activityMeta');
+    const activityProgress = document.querySelector('#activityProgress');
+    let previousVolume = slider.value;
+
+    function syncDiscordProfile() {
+      return fetch('/api/me', { cache: 'no-store' }).then((response) => response.json()).then((profile) => {
+      if (!profile) return;
+      discordUsername.textContent = profile.username;
+      if (profile.avatar) {
+        discordAvatar.src = profile.avatar;
+        discordAvatar.style.visibility = 'visible';
+      }
+      }).catch(() => {});
+    }
+
+    syncDiscordProfile();
+    function syncActivity() {
+      fetch('/api/activity', { cache: 'no-store' }).then((response) => response.json()).then((presence) => {
+        const activity = presence.activities?.find((item) => item.type === 0 && item.name);
+        const spotify = presence.listening_to_spotify ? presence.spotify : null;
+        if (spotify?.song && spotify.artist) {
+          activityCard.hidden = false;
+          activityIcon.innerHTML = `<img src="${spotify.album_art_url}" alt="Spotify album artwork" />`;
+          activityLabel.textContent = 'Listening on Spotify';
+          activityValue.textContent = spotify.song;
+          activityMeta.textContent = `${spotify.artist}${spotify.album ? ` - ${spotify.album}` : ''}`;
+          if (spotify.timestamps?.start && spotify.timestamps?.end) {
+            const duration = spotify.timestamps.end - spotify.timestamps.start;
+            const elapsed = Math.min(Math.max(Date.now() - spotify.timestamps.start, 0), duration);
+            activityProgress.hidden = false;
+            activityProgress.value = duration > 0 ? (elapsed / duration) * 100 : 0;
+          } else {
+            activityProgress.hidden = true;
+          }
+        } else if (activity?.name) {
+          activityCard.hidden = false;
+          activityIcon.textContent = '▶';
+          activityLabel.textContent = 'Playing now';
+          activityValue.textContent = activity.name;
+          activityMeta.textContent = activity.details || activity.state || '';
+          activityProgress.hidden = true;
+        } else {
+          activityCard.hidden = true;
+        }
+      }).catch(() => { activityCard.hidden = true; });
+    }
+
+    syncActivity();
+    setInterval(syncActivity, 500);
+    setInterval(syncDiscordProfile, 500);
+
+    function startExperience() {
+      backgroundVideo.muted = false;
+      backgroundVideo.volume = Number(slider.value) / 100;
+      backgroundVideoFill.volume = 0;
+      backgroundVideo.play().catch(() => {});
+      backgroundVideoFill.play().catch(() => {});
+      enterScreen.classList.add('hidden');
+    }
+
+    enterScreen.addEventListener('click', startExperience);
+    enterScreen.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') startExperience();
+    });
+
+    backgroundVideo.volume = Number(slider.value) / 100;
+    slider.addEventListener('input', () => {
+      backgroundVideo.volume = Number(slider.value) / 100;
+      backgroundVideo.muted = slider.value === '0';
+      if (slider.value !== '0') backgroundVideo.play().catch(() => {});
+    });
+
+    volumeButton.addEventListener('click', () => {
+      if (backgroundVideo.muted || slider.value === '0') {
+        slider.value = previousVolume;
+        backgroundVideo.volume = Number(previousVolume) / 100;
+        backgroundVideo.muted = false;
+        backgroundVideo.play().catch(() => {});
+        backgroundVideoFill.play().catch(() => {});
+        volumeButton.setAttribute('aria-label', 'Mute background audio');
+      } else {
+        previousVolume = slider.value;
+        slider.value = '0';
+        backgroundVideo.volume = 0;
+        backgroundVideo.muted = true;
+        volumeButton.setAttribute('aria-label', 'Unmute background audio');
+      }
+    });
+  </script>
+</body>
+</html>
